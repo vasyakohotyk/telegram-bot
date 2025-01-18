@@ -1,15 +1,16 @@
-import TeleBot from "telebot";
+import TelegramBot from 'node-telegram-bot-api';
 
-const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
+// Ваш токен для бота
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
 // ID вчителя
 const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
-// Функція для відправки повідомлень без блокування основного потоку
+// Функція для відправки повідомлень з кнопками
 const sendMessageAsync = (chatId, text, keyboard = null) => {
-  return bot.sendMessage(chatId, text, { replyMarkup: keyboard });
+  return bot.sendMessage(chatId, text, { reply_markup: keyboard });
 };
 
 // Функція для створення клавіатури
@@ -20,12 +21,11 @@ const createKeyboard = (options) => {
 };
 
 // Відправка привітального повідомлення
-bot.on("text", async (msg) => {
+bot.on('text', async (msg) => {
   const chatId = msg.chat.id;
 
   // Якщо це перший запит /start
   if (msg.text === "/start") {
-    // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
 
@@ -56,18 +56,38 @@ bot.on("text", async (msg) => {
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
-      // Зберігаємо вибір користувача
       const choice = msg.text.toLowerCase();
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
         session.step++;
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+
+        // Якщо вибір 'себе', запитуємо вік користувача
+        if (choice === 'себе') {
+          await sendMessageAsync(chatId, "Скільки вам років?");
+        } else {
+          // Якщо вибір 'дитину', запитуємо вік дитини
+          await sendMessageAsync(chatId, "Скільки років дитині?");
+        }
       } else {
         await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
       }
     }
-    // Якщо вибір дня тижня зроблений
+    // Якщо вік введено
     else if (session.step === 2) {
+      const age = parseInt(msg.text.trim(), 10);
+
+      // Перевіряємо, чи це число
+      if (!isNaN(age)) {
+        session.answers.push(age);
+        session.step++;
+
+        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
+      }
+    }
+    // Якщо вибір дня тижня зроблений
+    else if (session.step === 3) {
       const day = msg.text.trim().toLowerCase();
       const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
       
@@ -80,12 +100,11 @@ bot.on("text", async (msg) => {
       }
     }
     // Якщо відповідь на "Час?" отримано
-    else if (session.step === 3) {
-      // Зберігаємо час
+    else if (session.step === 4) {
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nДень уроку: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
@@ -94,7 +113,7 @@ bot.on("text", async (msg) => {
 });
 
 // Обробник callback-запитів для кнопок
-bot.on("callbackQuery", async (query) => {
+bot.on("callback_query", async (query) => {
   const chatId = query.from.id;
   const messageId = query.message.message_id;
 
@@ -103,11 +122,17 @@ bot.on("callbackQuery", async (query) => {
   const session = sessions[chatId];
 
   if (session.step === 1) {
-    // Зберігаємо вибір користувача
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
-      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+
+      // Якщо вибір 'себе', запитуємо вік користувача
+      if (answer === 'себе') {
+        await sendMessageAsync(chatId, "Скільки вам років?");
+      } else {
+        // Якщо вибір 'дитину', запитуємо вік дитини
+        await sendMessageAsync(chatId, "Скільки років дитині?");
+      }
     }
   }
 
