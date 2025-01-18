@@ -1,6 +1,5 @@
 import TeleBot from "telebot";
 
-// Створення бота
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
@@ -8,16 +7,14 @@ const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
-// Інлайн-кнопки для вибору "Себе" або "Дитину"
 const optionsPerson = {
-  reply_markup: {
+  reply_markup: JSON.stringify({
     inline_keyboard: [
-      [{ text: 'Себе', callback_data: '0' }],
-      [{ text: 'Дитину', callback_data: '1' }],
+      [{text: 'Себе', callback_data: '0'},
+      {text: 'Дитину', callback_data: '1'},]
     ]
-  }
-};
-
+  })
+}
 // Функція для відправки повідомлень без блокування основного потоку
 const sendMessageAsync = (chatId, text, replyMarkup) => {
   return bot.sendMessage(chatId, text, replyMarkup);
@@ -128,8 +125,5 @@ bot.on("callback_query", async (query) => {
   // Підтверджуємо вибір дня
   await bot.answerCallbackQuery(query.id, { text: `Ви обрали: ${selectedDay}`, show_alert: true });
 });
-
-// Запуск бота
-bot.start();
 
 export default bot;
