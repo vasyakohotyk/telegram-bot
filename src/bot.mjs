@@ -53,9 +53,6 @@ bot.on("text", async (msg) => {
       session.answers.push(msg.text);
       session.step++;
 
-      // Відповідаємо користувачу
-      await sendMessageAsync(chatId, `Ваше ім'я: ${msg.text}. Дякую за відповідь!`);
-
       // Тепер запитуємо наступне питання з кнопками
       await sendMessageAsync(
         chatId,
@@ -65,26 +62,12 @@ bot.on("text", async (msg) => {
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
-      const selected = msg.text === "Себе" ? "self" : "child";
-      session.answers.push(selected);
-      session.step++;
-
-      // Відповідаємо користувачу
-      await sendMessageAsync(chatId, `Ви записуєте: ${selected === "self" ? "Себе" : "Дитину"}. Дякуємо за відповідь!`);
-
-      // Запитуємо ще один наступний питання
-      await sendMessageAsync(
-        chatId,
-        "Яку дату вам зручніше для уроку?",
-      );
+      // Чекаємо на callback від кнопок
     }
     // Якщо відповідь на "Зручна дата?" отримано
     else if (session.step === 2) {
       session.answers.push(msg.text);
       session.step++;
-
-      // Відповідаємо користувачу
-      await sendMessageAsync(chatId, `Ви обрали дату: ${msg.text}. Дякуємо за відповідь!`);
 
       // Запитуємо ще один наступний питання
       await sendMessageAsync(
@@ -96,9 +79,6 @@ bot.on("text", async (msg) => {
     else if (session.step === 3) {
       session.answers.push(msg.text);
       session.step++;
-
-      // Відповідаємо користувачу
-      await sendMessageAsync(chatId, `Ви обрали час: ${msg.text}. Дякуємо за відповідь!`);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
       await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1] === "self" ? "Себе" : "Дитину"}\nДата: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
@@ -122,9 +102,6 @@ bot.on("callback_query", async (query) => {
     session.answers.push(query.data);
 
     session.step++;
-
-    // Відповідаємо користувачу
-    await sendMessageAsync(chatId, `Ви записуєте: ${query.data === "self" ? "Себе" : "Дитину"}. Дякуємо за відповідь!`);
 
     // Запитуємо ще один наступний питання
     await sendMessageAsync(
