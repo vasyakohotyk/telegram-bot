@@ -56,12 +56,11 @@ bot.on("text", async (msg) => {
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
-      // Зберігаємо вибір користувача
       const choice = msg.text.toLowerCase();
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
         session.step++;
-        
+
         // Запитуємо вік залежно від вибору
         if (choice === 'себе') {
           await sendMessageAsync(chatId, "Скільки вам років?");
@@ -80,7 +79,7 @@ bot.on("text", async (msg) => {
       if (!isNaN(age)) {
         session.answers.push(age);
         session.step++;
-        
+
         // Створюємо клавіатуру для вибору днів тижня
         const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
         const keyboard = createKeyboard([...daysOfWeek, "Продовжити"]);
@@ -92,16 +91,27 @@ bot.on("text", async (msg) => {
     // Якщо вибір днів тижня зроблений
     else if (session.step === 3) {
       const selectedDays = session.answers.filter(answer => answer !== "Продовжити");
-      
-      // Перевіряємо, чи є обрані дні
-      if (selectedDays.length > 0) {
-        session.answers.push(selectedDays.join(", "));
-        session.step++;
-        
-        // Запитуємо час
-        await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+
+      // Якщо вибрано день або більше
+      if (query.data !== "Продовжити") {
+        if (!session.selectedDays) {
+          session.selectedDays = [];
+        }
+        session.selectedDays.push(query.data);
+
+        // Оновлюємо клавіатуру
+        const updatedKeyboard = createKeyboard([...daysOfWeek, "Продовжити"]);
+        await sendMessageAsync(chatId, "Вибрані дні: " + session.selectedDays.join(", "), updatedKeyboard);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть хоча б один день.");
+        if (session.selectedDays && session.selectedDays.length > 0) {
+          session.answers.push(session.selectedDays.join(", "));
+          session.step++;
+
+          // Запитуємо час
+          await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+        } else {
+          await sendMessageAsync(chatId, "Будь ласка, виберіть хоча б один день.");
+        }
       }
     }
     // Якщо час вибрано
@@ -132,7 +142,7 @@ bot.on("callbackQuery", async (query) => {
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
-      
+
       // Запитуємо вік залежно від вибору
       if (answer === 'себе') {
         await sendMessageAsync(chatId, "Скільки вам років?");
@@ -145,7 +155,7 @@ bot.on("callbackQuery", async (query) => {
     if (answer === "продовжити") {
       const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
       session.answers.push(...daysOfWeek.filter(day => query.message.reply_markup.inline_keyboard.some(row => row[0].text === day && query.data === day)));
-      
+
       // Переходимо до вибору часу
       session.step++;
       await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
