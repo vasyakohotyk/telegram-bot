@@ -64,13 +64,18 @@ bot.on("text", async (msg) => {
     }
     // Якщо номер телефону введено
     else if (session.step === 1) {
-      // Зберігаємо номер телефону
-      session.answers.push(msg.text);
-      session.step++;
+      // Перевіряємо, чи це номер телефону
+      if (msg.contact) {
+        // Якщо номер телефону надано
+        session.answers.push(msg.contact.phone_number);
+        session.step++;
 
-      // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
-      const keyboard = createKeyboard(["Себе", "Дитину"]);
-      await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
+        // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
+        const keyboard = createKeyboard(["Себе", "Дитину"]);
+        await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону, натиснувши кнопку.");
+      }
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 2) {
@@ -130,6 +135,7 @@ bot.on("text", async (msg) => {
     }
   }
 });
+
 
 
 // Обробник callback-запитів для кнопок
