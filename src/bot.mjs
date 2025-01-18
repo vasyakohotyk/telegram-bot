@@ -55,9 +55,6 @@ bot.on("text", async (msg) => {
       session.answers.push(msg.text);
       session.step++;
 
-      // Відправляємо ім'я користувача вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${msg.text}`);
-
       // Відповідаємо користувачу
       await sendMessageAsync(chatId, `Ваше ім'я: ${msg.text}. Дякую за відповідь!`);
 
@@ -74,14 +71,41 @@ bot.on("text", async (msg) => {
       session.answers.push(selected);
       session.step++;
 
-      // Відправляємо вибір користувача вчителю
-      await sendMessageAsync(
-        TEACHER_CHAT_ID,
-        `Новий запис:\nЗаписуєте: ${selected === "self" ? "Себе" : "Дитину"}`
-      );
+      // Відповідаємо користувачу
+      await sendMessageAsync(chatId, `Ви записуєте: ${selected === "self" ? "Себе" : "Дитину"}. Дякуємо за відповідь!`);
 
-      // Завершуємо сесію після відповіді
-      await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемося з вами.");
+      // Запитуємо ще один наступний питання
+      await sendMessageAsync(
+        chatId,
+        "Яку дату вам зручніше для уроку?",
+      );
+    }
+    // Якщо відповідь на "Зручна дата?" отримано
+    else if (session.step === 2) {
+      session.answers.push(msg.text);
+      session.step++;
+
+      // Відповідаємо користувачу
+      await sendMessageAsync(chatId, `Ви обрали дату: ${msg.text}. Дякуємо за відповідь!`);
+
+      // Запитуємо ще один наступний питання
+      await sendMessageAsync(
+        chatId,
+        "Який час вам зручний?",
+      );
+    }
+    // Якщо відповідь на "Зручний час?" отримано
+    else if (session.step === 3) {
+      session.answers.push(msg.text);
+      session.step++;
+
+      // Відповідаємо користувачу
+      await sendMessageAsync(chatId, `Ви обрали час: ${msg.text}. Дякуємо за відповідь!`);
+
+      // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1] === "self" ? "Себе" : "Дитину"}\nДата: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
+
+      // Завершуємо сесію
       delete sessions[chatId];
     }
   }
@@ -97,22 +121,20 @@ bot.on("callback_query", async (query) => {
   if (session.step === 1) {
     if (query.data === "self") {
       session.answers.push("self");
-      session.step++;
-      await sendMessageAsync(chatId, "Ви записуєте себе. Дякуємо!");
     } else if (query.data === "child") {
       session.answers.push("child");
-      session.step++;
-      await sendMessageAsync(chatId, "Ви записуєте дитину. Дякуємо!");
     }
 
-    // Відправляємо дані вчителю
-    await sendMessageAsync(
-      TEACHER_CHAT_ID,
-      `Новий запис:\nЗаписуєте: ${query.data === "self" ? "Себе" : "Дитину"}`
-    );
+    session.step++;
 
-    // Завершуємо сесію після відповіді
-    delete sessions[chatId];
+    // Відповідаємо користувачу
+    await sendMessageAsync(chatId, `Ви записуєте: ${query.data === "self" ? "Себе" : "Дитину"}. Дякуємо за відповідь!`);
+
+    // Запитуємо ще один наступний питання
+    await sendMessageAsync(
+      chatId,
+      "Яку дату вам зручніше для уроку?",
+    );
   }
 });
 
