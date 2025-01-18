@@ -19,14 +19,6 @@ const createKeyboard = (options) => {
   };
 };
 
-const createContactRequestKeyboard = () => {
-  return {
-    keyboard: [[{ text: "Надіслати номер телефону", request_contact: true }]],
-    resize_keyboard: true,
-    one_time_keyboard: true,
-  };
-};
-
 // Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
@@ -61,7 +53,6 @@ bot.on("text", async (msg) => {
       // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
       const keyboard = createKeyboard(["Себе", "Дитину"]);
       await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
-      
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
@@ -70,7 +61,7 @@ bot.on("text", async (msg) => {
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
         session.step++;
-        
+
         // Запитуємо вік залежно від вибору
         if (choice === 'себе') {
           await sendMessageAsync(chatId, "Скільки вам років?");
@@ -89,149 +80,42 @@ bot.on("text", async (msg) => {
       if (!isNaN(age)) {
         session.answers.push(age);
         session.step++;
-        
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+
+        // Запитуємо рівень англійської
+        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
+        await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
       }
     }
-    // Якщо вибір дня тижня зроблений
+    // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
-      const day = msg.text.trim().toLowerCase();
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
-      
-      if (validDays.includes(day)) {
-        session.answers.push(day);
+      const level = msg.text.toLowerCase();
+      const validLevels = ["beginner", "intermediate", "advanced"];
+
+      if (validLevels.includes(level)) {
+        session.answers.push(level);
         session.step++;
-        await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+
+        // Запитуємо номер телефону
+        await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
     }
-    // Якщо відповідь на "Час?" отримано
-    else if (session.step === 4) {
-      // Зберігаємо час
-      session.answers.push(msg.text);
-      session.step++;
-
-      // Запитуємо номер телефону
-      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
-    }
     // Якщо номер телефону введено
-    else if (session.step === 5) {
+    else if (session.step === 4) {
       // Зберігаємо номер телефону
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
     }
   }
 });
-bot.on("text", async (msg) => {
-  const chatId = msg.chat.id;
-
-  // Якщо це перший запит /start
-  if (msg.text === "/start") {
-    // Ініціалізація сесії для користувача
-    if (!sessions[chatId]) {
-      sessions[chatId] = { answers: [], step: 0 };
-
-      // Надсилаємо перше привітальне повідомлення
-      await sendMessageAsync(chatId, "Привіт, я Даша твій сучасний тютор з англійської! Давайте запишемось на пробний урок. Пробний урок триває 30 хвилин, та являється повністю безкоштовним!");
-
-      // Запитуємо ім'я
-      await sendMessageAsync(chatId, "Як вас звати?");
-    }
-  } else {
-    const session = sessions[chatId];
-
-    // Якщо сесії немає, запитуємо користувача натискати /start
-    if (!session) {
-      await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
-      return;
-    }
-
-    // Якщо відповідь на ім'я вже отримано
-    if (session.step === 0) {
-      // Зберігаємо ім'я користувача
-      session.answers.push(msg.text);
-      session.step++;
-
-      // Запитуємо номер телефону
-      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.", createContactRequestKeyboard());
-    }
-    // Якщо номер телефону введено
-    else if (session.step === 1) {
-      // Зберігаємо номер телефону
-      session.answers.push(msg.text);
-      session.step++;
-
-      // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
-      const keyboard = createKeyboard(["Себе", "Дитину"]);
-      await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
-    }
-    // Якщо відповідь на "Себе чи дитину?" отримано
-    else if (session.step === 2) {
-      const choice = msg.text.toLowerCase();
-      if (choice === 'себе' || choice === 'дитину') {
-        session.answers.push(choice);
-        session.step++;
-        
-        // Запитуємо вік залежно від вибору
-        if (choice === 'себе') {
-          await sendMessageAsync(chatId, "Скільки вам років?");
-        } else {
-          await sendMessageAsync(chatId, "Скільки років дитині?");
-        }
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
-      }
-    }
-    // Якщо вік введено
-    else if (session.step === 3) {
-      const age = parseInt(msg.text.trim(), 10);
-
-      // Перевіряємо, чи це число
-      if (!isNaN(age)) {
-        session.answers.push(age);
-        session.step++;
-        
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
-      }
-    }
-    // Якщо вибір дня тижня зроблений
-    else if (session.step === 4) {
-      const day = msg.text.trim().toLowerCase();
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
-      
-      if (validDays.includes(day)) {
-        session.answers.push(day);
-        session.step++;
-        await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
-      }
-    }
-    // Якщо відповідь на "Час?" отримано
-    else if (session.step === 5) {
-      // Зберігаємо час
-      session.answers.push(msg.text);
-      session.step++;
-
-      // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
-
-      // Завершуємо сесію
-      delete sessions[chatId];
-    }
-  }
-});
-
 
 // Обробник callback-запитів для кнопок
 bot.on("callbackQuery", async (query) => {
@@ -247,7 +131,7 @@ bot.on("callbackQuery", async (query) => {
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
-      
+
       // Запитуємо вік залежно від вибору
       if (answer === 'себе') {
         await sendMessageAsync(chatId, "Скільки вам років?");
