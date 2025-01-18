@@ -8,8 +8,8 @@ const TEACHER_CHAT_ID = 7114975475;
 const sessions = {};
 
 // Функція для відправки повідомлень без блокування основного потоку
-const sendMessageAsync = (chatId, text, replyMarkup) => {
-  return bot.sendMessage(chatId, text, replyMarkup);
+const sendMessageAsync = (chatId, text) => {
+  return bot.sendMessage(chatId, text);
 };
 
 // Відправка привітального повідомлення
@@ -56,7 +56,7 @@ bot.on("text", async (msg) => {
       await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
       
       // Відправляємо інлайн-кнопки для вибору дня
-      await sendMessageAsync(chatId, "Виберіть день:", {
+      await bot.sendMessage(chatId, "Виберіть день:", {
         reply_markup: {
           inline_keyboard: [
             [{ text: "Понеділок", callback_data: "pn" }],
