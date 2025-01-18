@@ -60,34 +60,13 @@ bot.on('text', async (msg) => {
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
         session.step++;
-
-        // Якщо вибір 'себе', запитуємо вік користувача
-        if (choice === 'себе') {
-          await sendMessageAsync(chatId, "Скільки вам років?");
-        } else {
-          // Якщо вибір 'дитину', запитуємо вік дитини
-          await sendMessageAsync(chatId, "Скільки років дитині?");
-        }
+        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
       } else {
         await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
       }
     }
-    // Якщо вік введено
-    else if (session.step === 2) {
-      const age = parseInt(msg.text.trim(), 10);
-
-      // Перевіряємо, чи це число
-      if (!isNaN(age)) {
-        session.answers.push(age);
-        session.step++;
-
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
-      }
-    }
     // Якщо вибір дня тижня зроблений
-    else if (session.step === 3) {
+    else if (session.step === 2) {
       const day = msg.text.trim().toLowerCase();
       const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
       
@@ -100,11 +79,11 @@ bot.on('text', async (msg) => {
       }
     }
     // Якщо відповідь на "Час?" отримано
-    else if (session.step === 4) {
+    else if (session.step === 3) {
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nДень уроку: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
@@ -125,14 +104,7 @@ bot.on("callback_query", async (query) => {
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
-
-      // Якщо вибір 'себе', запитуємо вік користувача
-      if (answer === 'себе') {
-        await sendMessageAsync(chatId, "Скільки вам років?");
-      } else {
-        // Якщо вибір 'дитину', запитуємо вік дитини
-        await sendMessageAsync(chatId, "Скільки років дитині?");
-      }
+      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
     }
   }
 
