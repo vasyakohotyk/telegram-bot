@@ -54,6 +54,8 @@ bot.on("text", async (msg) => {
       // Переходимо до вибору дня тижня
       session.step++;
       await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
+      
+      // Відправляємо інлайн-кнопки для вибору дня
       await bot.sendMessage(chatId, "Виберіть день:", {
         reply_markup: {
           inline_keyboard: [
