@@ -7,14 +7,6 @@ const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
-const optionsPerson = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [
-      [{text: 'Себе', callback_data: '0'},
-      {text: 'Дитину', callback_data: '1'},]
-    ]
-  })
-}
 // Функція для відправки повідомлень без блокування основного потоку
 const sendMessageAsync = (chatId, text, replyMarkup) => {
   return bot.sendMessage(chatId, text, replyMarkup);
@@ -61,7 +53,7 @@ bot.on("text", async (msg) => {
 
       // Переходимо до вибору дня тижня
       session.step++;
-      sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
+      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
       
       // Відправляємо інлайн-кнопки для вибору дня
       await sendMessageAsync(chatId, "Виберіть день:", {
