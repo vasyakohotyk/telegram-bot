@@ -2,6 +2,9 @@ import TeleBot from "telebot";
 
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
+// ID вчителя
+const TEACHER_CHAT_ID = 7114975475;
+
 const sessions = {};
 
 // Відправка привітального повідомлення
@@ -22,12 +25,18 @@ bot.on("text", (msg) => {
       return;
     }
 
-    // Зберігаємо ім'я користувача та виводимо наступне повідомлення
-    session.answers.push(msg.text); // Зберігаємо ім'я
+    // Зберігаємо ім'я користувача
+    session.answers.push(msg.text);
     session.step++;
 
+    // Відправляємо ім'я користувача вчителю
+    bot.sendMessage(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${msg.text}`);
+
+    // Відповідаємо користувачу
     bot.sendMessage(chatId, `Ваше ім'я: ${msg.text}. Дякую за відповідь!`);
-    delete sessions[chatId]; // Очистити сесію після отримання відповіді
+
+    // Очищаємо сесію
+    delete sessions[chatId];
   }
 });
 
