@@ -116,6 +116,7 @@ bot.on("callback_query", async (query) => {
 
   if (!session) return;
 
+  // Перевіряємо, чи ми на кроці запитання з вибором "Себе чи Дитину"
   if (session.step === 1) {
     // Зберігаємо відповідь на кнопку як текст
     session.answers.push(query.data);
@@ -131,6 +132,9 @@ bot.on("callback_query", async (query) => {
       "Яку дату вам зручніше для уроку?",
     );
   }
+
+  // Підтвердження callback-запиту, щоб Telegram знав, що обробка завершена
+  bot.answerCallbackQuery(query.id);
 });
 
 export default bot;
