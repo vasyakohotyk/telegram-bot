@@ -8,18 +8,8 @@ const TEACHER_CHAT_ID = 7114975475;
 const sessions = {};
 
 // Функція для відправки повідомлень без блокування основного потоку
-const sendMessageAsync = (chatId, text, replyMarkup = null) => {
-  return bot.sendMessage(chatId, text, { replyMarkup });
-};
-
-// Створення інлайн кнопок
-const createButtons = () => {
-  return {
-    inline_keyboard: [
-      [{ text: "Себе", callback_data: "self" }],
-      [{ text: "Дитину", callback_data: "child" }],
-    ],
-  };
+const sendMessageAsync = (chatId, text) => {
+  return bot.sendMessage(chatId, text);
 };
 
 // Відправка привітального повідомлення
@@ -53,65 +43,39 @@ bot.on("text", async (msg) => {
       session.answers.push(msg.text);
       session.step++;
 
-      // Тепер запитуємо наступне питання з кнопками
-      await sendMessageAsync(
-        chatId,
-        "Записуєте себе чи дитину?",
-        createButtons()
-      );
+      // Тепер запитуємо наступне питання: чи записує користувач себе чи дитину?
+      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.");
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
-      // Чекаємо на callback від кнопок
-    }
-    // Якщо відповідь на "Зручна дата?" отримано
-    else if (session.step === 2) {
+      // Зберігаємо вибір користувача
       session.answers.push(msg.text);
-      session.step++;
 
-      // Запитуємо ще один наступний питання
-      await sendMessageAsync(
-        chatId,
-        "Який час вам зручний?",
-      );
-    }
-    // Якщо відповідь на "Зручний час?" отримано
-    else if (session.step === 3) {
-      session.answers.push(msg.text);
+      // Переходимо до запитання про дату
       session.step++;
+      await sendMessageAsync(chatId, "Яку дату вам зручніше для уроку? Напишіть дату у форматі 'ДД.ММ.РРРР'.");
+    }
+    // Якщо відповідь на "Дата?" отримано
+    else if (session.step === 2) {
+      // Зберігаємо дату
+      session.answers.push(msg.text);
+
+      // Переходимо до запитання про час
+      session.step++;
+      await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+    }
+    // Якщо відповідь на "Час?" отримано
+    else if (session.step === 3) {
+      // Зберігаємо час
+      session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1] === "self" ? "Себе" : "Дитину"}\nДата: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nДата: ${session.answers[2]}\nЧас: ${session.answers[3]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
     }
   }
-});
-
-// Обробка callback_data для кнопок
-bot.on("callback_query", async (query) => {
-  const chatId = query.message.chat.id;
-  const session = sessions[chatId];
-
-  if (!session) return;
-
-  // Перевіряємо, чи ми на кроці запитання з вибором "Себе чи Дитину"
-  if (session.step === 1) {
-    // Зберігаємо відповідь на кнопку як текст
-    session.answers.push(query.data);
-
-    session.step++;
-
-    // Запитуємо ще один наступний питання
-    await sendMessageAsync(
-      chatId,
-      "Яку дату вам зручніше для уроку?",
-    );
-  }
-
-  // Підтвердження callback-запиту, щоб Telegram знав, що обробка завершена
-  bot.answerCallbackQuery(query.id, { text: "Ваша відповідь записана!" });
 });
 
 export default bot;
