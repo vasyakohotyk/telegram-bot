@@ -7,8 +7,13 @@ const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
+// Функція для відправки повідомлень без блокування основного потоку
+const sendMessageAsync = (chatId, text) => {
+  return bot.sendMessage(chatId, text);
+};
+
 // Відправка привітального повідомлення
-bot.on("text", (msg) => {
+bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
 
   // Якщо це перший запит /start
@@ -16,21 +21,21 @@ bot.on("text", (msg) => {
     // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
-      
+
       // Надсилаємо перше привітальне повідомлення
-      bot.sendMessage(chatId, "Привіт, я Даша твій сучасний тютор з англійської! Давайте запишемось на пробний урок. Пробний урок триває 30 хвилин, та являється повністю безкоштовним!");
+      await sendMessageAsync(chatId, "Привіт, я Даша твій сучасний тютор з англійської! Давайте запишемось на пробний урок. Пробний урок триває 30 хвилин, та являється повністю безкоштовним!");
 
       // Запитуємо ім'я
-      bot.sendMessage(chatId, "Як вас звати?");
+      await sendMessageAsync(chatId, "Як вас звати?");
     } else {
-      bot.sendMessage(chatId, "Ви вже почали реєстрацію!");
+      await sendMessageAsync(chatId, "Ви вже почали реєстрацію!");
     }
   } else {
     const session = sessions[chatId];
 
     // Якщо сесії немає, запитуємо користувача натискати /start
     if (!session) {
-      bot.sendMessage(chatId, "Натисніть /start, щоб почати.");
+      await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
       return;
     }
 
@@ -41,10 +46,10 @@ bot.on("text", (msg) => {
       session.step++;
 
       // Відправляємо ім'я користувача вчителю
-      bot.sendMessage(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${msg.text}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${msg.text}`);
 
       // Відповідаємо користувачу
-      bot.sendMessage(chatId, `Ваше ім'я: ${msg.text}. Дякую за відповідь!`);
+      await sendMessageAsync(chatId, `Ваше ім'я: ${msg.text}. Дякую за відповідь!`);
       
       // Завершуємо сесію після відповіді
       delete sessions[chatId];
