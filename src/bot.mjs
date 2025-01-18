@@ -49,31 +49,27 @@ bot.on("text", async (msg) => {
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
       // Зберігаємо вибір користувача
-      session.answers.push(msg.text);
-
-      // Переходимо до вибору дня тижня
-      session.step++;
-      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
-      
-      // Відправляємо інлайн-кнопки для вибору дня
-      await bot.sendMessage(chatId, "Виберіть день:", {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "Понеділок", callback_data: "pn" }],
-            [{ text: "Вівторок", callback_data: "wt" }],
-            [{ text: "Середа", callback_data: "sr" }],
-            [{ text: "Четвер", callback_data: "ct" }],
-            [{ text: "П'ятниця", callback_data: "pt" }],
-            [{ text: "Субота", callback_data: "sb" }]
-          ]
-        }
-      });
+      const choice = msg.text.toLowerCase();
+      if (choice === 'себе' || choice === 'дитину') {
+        session.answers.push(choice);
+        session.step++;
+        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
+      }
     }
     // Якщо вибір дня тижня зроблений
     else if (session.step === 2) {
-      // Переходимо до запитання про час
-      session.step++;
-      await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+      const day = msg.text.trim().toLowerCase();
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
+      
+      if (validDays.includes(day)) {
+        session.answers.push(day);
+        session.step++;
+        await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
+      }
     }
     // Якщо відповідь на "Час?" отримано
     else if (session.step === 3) {
@@ -87,35 +83,6 @@ bot.on("text", async (msg) => {
       delete sessions[chatId];
     }
   }
-});
-
-// Обробка callback_data для вибору дня
-bot.on("callback_query", async (query) => {
-  const chatId = query.message.chat.id;
-  const session = sessions[chatId];
-
-  if (!session) return;
-
-  const dayMap = {
-    pn: "Понеділок",
-    wt: "Вівторок",
-    sr: "Середа",
-    ct: "Четвер",
-    pt: "П'ятниця",
-    sb: "Субота",
-  };
-
-  const selectedDay = dayMap[query.data];
-  if (selectedDay) {
-    session.answers.push(selectedDay);
-    session.step++;
-
-    // Переходимо до запитання про час
-    await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
-  }
-
-  // Підтверджуємо вибір дня
-  await bot.answerCallbackQuery(query.id, { text: `Ви обрали: ${selectedDay}`, show_alert: true });
 });
 
 export default bot;
