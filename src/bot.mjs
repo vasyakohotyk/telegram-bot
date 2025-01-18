@@ -19,6 +19,14 @@ const createKeyboard = (options) => {
   };
 };
 
+const createContactRequestKeyboard = () => {
+  return {
+    keyboard: [[{ text: "Надіслати номер телефону", request_contact: true }]],
+    resize_keyboard: true,
+    one_time_keyboard: true,
+  };
+};
+
 // Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
