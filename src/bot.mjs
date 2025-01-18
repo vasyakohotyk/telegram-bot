@@ -37,8 +37,6 @@ bot.on("text", async (msg) => {
 
       // Запитуємо ім'я
       await sendMessageAsync(chatId, "Як вас звати?");
-    } else {
-      await sendMessageAsync(chatId, "Ви вже почали реєстрацію!");
     }
   } else {
     const session = sessions[chatId];
@@ -119,11 +117,8 @@ bot.on("callback_query", async (query) => {
   if (!session) return;
 
   if (session.step === 1) {
-    if (query.data === "self") {
-      session.answers.push("self");
-    } else if (query.data === "child") {
-      session.answers.push("child");
-    }
+    // Зберігаємо відповідь на кнопку як текст
+    session.answers.push(query.data);
 
     session.step++;
 
