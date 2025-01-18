@@ -81,31 +81,36 @@ bot.on("text", async (msg) => {
         session.answers.push(age);
         session.step++;
         
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+        // Створюємо клавіатуру для вибору днів тижня
+        const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+        const keyboard = createKeyboard([...daysOfWeek, "Продовжити"]);
+        await sendMessageAsync(chatId, "Виберіть дні тижня для уроку (можна вибрати кілька):", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
       }
     }
-    // Якщо вибір дня тижня зроблений
+    // Якщо вибір днів тижня зроблений
     else if (session.step === 3) {
-      const day = msg.text.trim().toLowerCase();
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
+      const selectedDays = session.answers.filter(answer => answer !== "Продовжити");
       
-      if (validDays.includes(day)) {
-        session.answers.push(day);
+      // Перевіряємо, чи є обрані дні
+      if (selectedDays.length > 0) {
+        session.answers.push(selectedDays.join(", "));
         session.step++;
+        
+        // Запитуємо час
         await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть хоча б один день.");
       }
     }
-    // Якщо відповідь на "Час?" отримано
+    // Якщо час вибрано
     else if (session.step === 4) {
       // Зберігаємо час
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДні уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
@@ -134,6 +139,16 @@ bot.on("callbackQuery", async (query) => {
       } else {
         await sendMessageAsync(chatId, "Скільки років дитині?");
       }
+    }
+  } else if (session.step === 2) {
+    // Якщо користувач натиснув "Продовжити"
+    if (answer === "продовжити") {
+      const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+      session.answers.push(...daysOfWeek.filter(day => query.message.reply_markup.inline_keyboard.some(row => row[0].text === day && query.data === day)));
+      
+      // Переходимо до вибору часу
+      session.step++;
+      await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
     }
   }
 
