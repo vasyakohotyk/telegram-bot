@@ -53,6 +53,7 @@ bot.on("text", async (msg) => {
       // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
       const keyboard = createKeyboard(["Себе", "Дитину"]);
       await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
+      
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
@@ -61,7 +62,7 @@ bot.on("text", async (msg) => {
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
         session.step++;
-
+        
         // Запитуємо вік залежно від вибору
         if (choice === 'себе') {
           await sendMessageAsync(chatId, "Скільки вам років?");
@@ -80,36 +81,41 @@ bot.on("text", async (msg) => {
       if (!isNaN(age)) {
         session.answers.push(age);
         session.step++;
-
-        // Запитуємо рівень англійської
-        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
-        await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
+        
+        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
       }
     }
-    // Якщо вибір рівня англійської зроблений
+    // Якщо вибір дня тижня зроблений
     else if (session.step === 3) {
-      const level = msg.text.toLowerCase();
-      const validLevels = ["beginner", "intermediate", "advanced"];
-
-      if (validLevels.includes(level)) {
-        session.answers.push(level);
+      const day = msg.text.trim().toLowerCase();
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
+      
+      if (validDays.includes(day)) {
+        session.answers.push(day);
         session.step++;
-
-        // Запитуємо номер телефону
-        await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
+        await sendMessageAsync(chatId, "Який час вам зручний? Напишіть час у форматі 'ГГ:ММ'.");
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
       }
     }
-    // Якщо номер телефону введено
+    // Якщо відповідь на "Час?" отримано
     else if (session.step === 4) {
+      // Зберігаємо час
+      session.answers.push(msg.text);
+      session.step++;
+
+      // Запитуємо номер телефону
+      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
+    }
+    // Якщо номер телефону введено
+    else if (session.step === 5) {
       // Зберігаємо номер телефону
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
@@ -131,7 +137,7 @@ bot.on("callbackQuery", async (query) => {
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
-
+      
       // Запитуємо вік залежно від вибору
       if (answer === 'себе') {
         await sendMessageAsync(chatId, "Скільки вам років?");
