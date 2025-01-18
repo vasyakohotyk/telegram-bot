@@ -93,15 +93,17 @@ bot.on("text", async (msg) => {
       const selectedDays = session.answers.filter(answer => answer !== "Продовжити");
 
       // Якщо вибрано день або більше
-      if (query.data !== "Продовжити") {
+      if (msg.text !== "Продовжити") {
         if (!session.selectedDays) {
           session.selectedDays = [];
         }
-        session.selectedDays.push(query.data);
+
+        session.selectedDays.push(msg.text);
+        session.answers = [...new Set(session.selectedDays)]; // Зберігаємо унікальні дні
 
         // Оновлюємо клавіатуру
         const updatedKeyboard = createKeyboard([...daysOfWeek, "Продовжити"]);
-        await sendMessageAsync(chatId, "Вибрані дні: " + session.selectedDays.join(", "), updatedKeyboard);
+        await sendMessageAsync(chatId, "Вибрані дні: " + session.answers.join(", "), updatedKeyboard);
       } else {
         if (session.selectedDays && session.selectedDays.length > 0) {
           session.answers.push(session.selectedDays.join(", "));
