@@ -52,7 +52,7 @@ bot.on("text", async (msg) => {
       session.step++;
 
       // Тепер запитуємо наступне питання: чи записує користувач себе чи дитину?
-      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.", optionsPerson);
+      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.");
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
@@ -61,7 +61,7 @@ bot.on("text", async (msg) => {
 
       // Переходимо до вибору дня тижня
       session.step++;
-      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
+      sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку?");
       
       // Відправляємо інлайн-кнопки для вибору дня
       await sendMessageAsync(chatId, "Виберіть день:", {
