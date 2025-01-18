@@ -1,16 +1,15 @@
-import TelegramBot from 'node-telegram-bot-api';
+import TeleBot from "telebot";
 
-// Ваш токен для бота
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
 const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
-// Функція для відправки повідомлень з кнопками
+// Функція для відправки повідомлень без блокування основного потоку
 const sendMessageAsync = (chatId, text, keyboard = null) => {
-  return bot.sendMessage(chatId, text, { reply_markup: keyboard });
+  return bot.sendMessage(chatId, text, { replyMarkup: keyboard });
 };
 
 // Функція для створення клавіатури
@@ -21,11 +20,12 @@ const createKeyboard = (options) => {
 };
 
 // Відправка привітального повідомлення
-bot.on('text', async (msg) => {
+bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
 
   // Якщо це перший запит /start
   if (msg.text === "/start") {
+    // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
 
@@ -56,6 +56,7 @@ bot.on('text', async (msg) => {
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
+      // Зберігаємо вибір користувача
       const choice = msg.text.toLowerCase();
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
@@ -80,6 +81,7 @@ bot.on('text', async (msg) => {
     }
     // Якщо відповідь на "Час?" отримано
     else if (session.step === 3) {
+      // Зберігаємо час
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
@@ -92,7 +94,7 @@ bot.on('text', async (msg) => {
 });
 
 // Обробник callback-запитів для кнопок
-bot.on("callback_query", async (query) => {
+bot.on("callbackQuery", async (query) => {
   const chatId = query.from.id;
   const messageId = query.message.message_id;
 
@@ -101,6 +103,7 @@ bot.on("callback_query", async (query) => {
   const session = sessions[chatId];
 
   if (session.step === 1) {
+    // Зберігаємо вибір користувача
     if (answer === 'себе' || answer === 'дитину') {
       session.answers.push(answer);
       session.step++;
