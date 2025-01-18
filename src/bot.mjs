@@ -81,30 +81,15 @@ bot.on("text", async (msg) => {
         session.answers.push(age);
         session.step++;
 
-        // Запитуємо день тижня
-        await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
-      }
-    }
-    // Якщо вибір дня тижня зроблений
-    else if (session.step === 3) {
-      const day = msg.text.trim().toLowerCase();
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
-
-      if (validDays.includes(day)) {
-        session.answers.push(day);
-        session.step++;
-
         // Запитуємо рівень англійської
         const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, напишіть правильний день тижня.");
+        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
       }
     }
     // Якщо вибір рівня англійської зроблений
-    else if (session.step === 4) {
+    else if (session.step === 3) {
       const level = msg.text.toLowerCase();
       const validLevels = ["beginner", "intermediate", "advanced"];
 
@@ -119,12 +104,12 @@ bot.on("text", async (msg) => {
       }
     }
     // Якщо номер телефону введено
-    else if (session.step === 5) {
+    else if (session.step === 4) {
       // Зберігаємо номер телефону
       session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nРівень англійської: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
