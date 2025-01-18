@@ -53,7 +53,6 @@ bot.on("text", async (msg) => {
       // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
       const keyboard = createKeyboard(["Себе", "Дитину"]);
       await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
-      
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
@@ -104,18 +103,9 @@ bot.on("text", async (msg) => {
     else if (session.step === 4) {
       // Зберігаємо час
       session.answers.push(msg.text);
-      session.step++;
-
-      // Запитуємо номер телефону
-      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
-    }
-    // Якщо номер телефону введено
-    else if (session.step === 5) {
-      // Зберігаємо номер телефону
-      session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
+      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}`);
 
       // Завершуємо сесію
       delete sessions[chatId];
