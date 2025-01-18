@@ -111,7 +111,7 @@ bot.on("callback_query", async (query) => {
   }
 
   // Підтвердження callback-запиту, щоб Telegram знав, що обробка завершена
-  bot.answerCallbackQuery(query.id);
+  bot.answerCallbackQuery(query.id, { text: "Ваша відповідь записана!" });
 });
 
 export default bot;
