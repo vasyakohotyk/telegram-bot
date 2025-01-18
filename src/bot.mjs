@@ -7,6 +7,14 @@ const TEACHER_CHAT_ID = 7114975475;
 
 const sessions = {};
 
+const optionsPerson = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{text: 'Себе', callback_data: '0'},
+      {text: 'Дитину', callback_data: '1'},]
+    ]
+  })
+}
 // Функція для відправки повідомлень без блокування основного потоку
 const sendMessageAsync = (chatId, text, replyMarkup) => {
   return bot.sendMessage(chatId, text, replyMarkup);
@@ -44,7 +52,7 @@ bot.on("text", async (msg) => {
       session.step++;
 
       // Тепер запитуємо наступне питання: чи записує користувач себе чи дитину?
-      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.");
+      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.", optionsPerson);
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
