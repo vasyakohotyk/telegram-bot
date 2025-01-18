@@ -8,8 +8,15 @@ const TEACHER_CHAT_ID = 7114975475;
 const sessions = {};
 
 // Функція для відправки повідомлень без блокування основного потоку
-const sendMessageAsync = (chatId, text) => {
-  return bot.sendMessage(chatId, text);
+const sendMessageAsync = (chatId, text, keyboard = null) => {
+  return bot.sendMessage(chatId, text, { replyMarkup: keyboard });
+};
+
+// Функція для створення клавіатури
+const createKeyboard = (options) => {
+  return {
+    inline_keyboard: options.map(option => [{ text: option, callback_data: option }])
+  };
 };
 
 // Відправка привітального повідомлення
@@ -43,8 +50,9 @@ bot.on("text", async (msg) => {
       session.answers.push(msg.text);
       session.step++;
 
-      // Тепер запитуємо наступне питання: чи записує користувач себе чи дитину?
-      await sendMessageAsync(chatId, "Записуєте себе чи дитину? Напишіть 'Себе' або 'Дитину'.");
+      // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
+      const keyboard = createKeyboard(["Себе", "Дитину"]);
+      await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
@@ -83,6 +91,28 @@ bot.on("text", async (msg) => {
       delete sessions[chatId];
     }
   }
+});
+
+// Обробник callback-запитів для кнопок
+bot.on("callbackQuery", async (query) => {
+  const chatId = query.from.id;
+  const messageId = query.message.message_id;
+
+  // Отримуємо дані з кнопки
+  const answer = query.data.toLowerCase();
+  const session = sessions[chatId];
+
+  if (session.step === 1) {
+    // Зберігаємо вибір користувача
+    if (answer === 'себе' || answer === 'дитину') {
+      session.answers.push(answer);
+      session.step++;
+      await sendMessageAsync(chatId, "Який день тижня вам зручний для проведення уроку? Напишіть день, наприклад: 'Понеділок'.");
+    }
+  }
+
+  // Видаляємо повідомлення з кнопками після вибору
+  await bot.deleteMessage(chatId, messageId);
 });
 
 export default bot;
