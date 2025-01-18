@@ -1,5 +1,6 @@
 import TeleBot from "telebot";
 
+// Створення бота
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
@@ -127,5 +128,8 @@ bot.on("callback_query", async (query) => {
   // Підтверджуємо вибір дня
   await bot.answerCallbackQuery(query.id, { text: `Ви обрали: ${selectedDay}`, show_alert: true });
 });
+
+// Запуск бота
+bot.start();
 
 export default bot;
