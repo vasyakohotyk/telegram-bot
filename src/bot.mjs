@@ -28,6 +28,7 @@ const createContactRequestKeyboard = () => {
 };
 
 // Відправка привітального повідомлення
+
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
 
@@ -58,14 +59,21 @@ bot.on("text", async (msg) => {
       session.answers.push(msg.text);
       session.step++;
 
+      // Запитуємо номер телефону
+      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.", createContactRequestKeyboard());
+    }
+    // Якщо номер телефону введено
+    else if (session.step === 1) {
+      // Зберігаємо номер телефону
+      session.answers.push(msg.text);
+      session.step++;
+
       // Запитуємо, чи записує користувач себе чи дитину, використовуючи кнопки
       const keyboard = createKeyboard(["Себе", "Дитину"]);
       await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
-      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.", createContactRequestKeyboard());
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
-    else if (session.step === 1) {
-      // Зберігаємо вибір користувача
+    else if (session.step === 2) {
       const choice = msg.text.toLowerCase();
       if (choice === 'себе' || choice === 'дитину') {
         session.answers.push(choice);
@@ -82,7 +90,7 @@ bot.on("text", async (msg) => {
       }
     }
     // Якщо вік введено
-    else if (session.step === 2) {
+    else if (session.step === 3) {
       const age = parseInt(msg.text.trim(), 10);
 
       // Перевіряємо, чи це число
@@ -96,7 +104,7 @@ bot.on("text", async (msg) => {
       }
     }
     // Якщо вибір дня тижня зроблений
-    else if (session.step === 3) {
+    else if (session.step === 4) {
       const day = msg.text.trim().toLowerCase();
       const validDays = ["понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
       
@@ -109,18 +117,10 @@ bot.on("text", async (msg) => {
       }
     }
     // Якщо відповідь на "Час?" отримано
-    else if (session.step === 4) {
+    else if (session.step === 5) {
       // Зберігаємо час
       session.answers.push(msg.text);
       session.step++;
-
-      // Запитуємо номер телефону
-      await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
-    }
-    // Якщо номер телефону введено
-    else if (session.step === 5) {
-      // Зберігаємо номер телефону
-      session.answers.push(msg.text);
 
       // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
       await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nДень уроку: ${session.answers[3]}\nЧас: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`);
@@ -130,6 +130,7 @@ bot.on("text", async (msg) => {
     }
   }
 });
+
 
 // Обробник callback-запитів для кнопок
 bot.on("callbackQuery", async (query) => {
