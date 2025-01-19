@@ -39,9 +39,10 @@ bot.on("text", async (msg) => {
     // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
-      const photoUrl = "https://telegram-bot-xvks.vercel.app/images/logo.png";
-      const text = "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.";
-      await bot.sendPhoto(chatId, photoUrl, { caption: text });
+
+      // Надсилаємо перше привітальне повідомлення
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.");
+      await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
     const session = sessions[chatId];
@@ -142,7 +143,7 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nДень уроку: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`
+      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}`
     );
 
     // Завершуємо сесію
