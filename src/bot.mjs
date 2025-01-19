@@ -30,6 +30,13 @@ const sendContactRequest = async (chatId) => {
   await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону, натиснувши кнопку нижче.", keyboard);
 };
 
+// Функція для запиту вибору дня
+const sendDaySelection = async (chatId) => {
+  const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+  const keyboard = createKeyboard(days);
+  await sendMessageAsync(chatId, "Який день вам підходить для уроку?", keyboard);
+};
+
 // Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
@@ -100,14 +107,14 @@ bot.on("text", async (msg) => {
     // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
-      const validLevels = ["Початковий", "Середній", "Продвинутий"];
+      const validLevels = ["початковий", "середній", "продвинутий"];
 
       if (validLevels.includes(level)) {
         session.answers.push(level);
         session.step++;
 
-        // Викликаємо функцію для запиту номера телефону
-        await sendContactRequest(chatId);
+        // Запитуємо вибір дня для уроку
+        await sendDaySelection(chatId);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
@@ -127,7 +134,7 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`
+      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}\nДень для уроку: ${session.answers[5]}`
     );
 
     // Завершуємо сесію
@@ -148,7 +155,7 @@ bot.on("callbackQuery", async (query) => {
     return;
   }
 
-  const answer = query.data.toLowerCase();
+  const answer = query.data;
 
   try {
     if (session.step === 1) {
@@ -165,16 +172,22 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["Початковийі", "Середній", "Продвинутий"];
+      const validLevels = ["початковий", "середній", "продвинутий"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
 
-        // Запитуємо номер телефону
-        await sendContactRequest(chatId);
+        // Запитуємо вибір дня
+        await sendDaySelection(chatId);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень за допомогою кнопок.");
       }
+    } else if (session.step === 4) {
+      session.answers.push(answer);
+      session.step++;
+
+      // Викликаємо функцію для запиту номера телефону
+      await sendContactRequest(chatId);
     } else {
       await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
