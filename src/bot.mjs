@@ -46,44 +46,34 @@ bot.on("text", async (msg) => {
   } else {
     const session = sessions[chatId];
 
-    // Якщо сесії немає
     if (!session) {
       await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
       return;
     }
 
-    // Якщо отримано ім'я
     if (session.step === 0) {
       session.answers.push({ name: msg.text });
       session.step++;
-
-      // Запитуємо Telegram-тег
       await sendMessageAsync(chatId, "Вкажіть ваш Telegram-тег (наприклад, @username).");
-    } 
-    // Якщо отримано Telegram-тег
-    else if (session.step === 1) {
+    } else if (session.step === 1) {
       const telegramTag = msg.text.trim();
 
       if (telegramTag.startsWith("@") && telegramTag.length > 1) {
         session.answers.push({ telegramTag });
         session.step++;
 
-        // Запитуємо, чи записує користувач себе чи дитину
         const keyboard = createKeyboard(["Себе", "Дитину"]);
         await sendMessageAsync(chatId, "Записуєте себе чи дитину?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний Telegram-тег, який починається з @.");
       }
-    } 
-    // Якщо отримано вік
-    else if (session.step === 3) {
+    } else if (session.step === 3) {
       const age = parseInt(msg.text.trim(), 10);
 
       if (!isNaN(age) && age > 0) {
         session.answers.push({ age });
         session.step++;
 
-        // Запитуємо рівень англійської
         const keyboard = createKeyboard(["Новачок", "Середній", "Просунутий"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
@@ -97,54 +87,71 @@ bot.on("text", async (msg) => {
 bot.on("callbackQuery", async (msg) => {
   const chatId = msg.from.id;
   const session = sessions[chatId];
-  const data = msg.data; // Дані з кнопки
+  const data = msg.data;
 
   if (!session) {
     await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
     return;
   }
 
-  // Якщо вибір "Себе чи Дитину"
   if (session.step === 2) {
     if (data === "Себе" || data === "Дитину") {
       session.answers.push({ choice: data });
       session.step++;
-
-      if (data === "Себе") {
-        await sendMessageAsync(chatId, "Скільки вам років?");
-      } else {
-        await sendMessageAsync(chatId, "Скільки років дитині?");
-      }
+      const question = data === "Себе" ? "Скільки вам років?" : "Скільки років дитині?";
+      await sendMessageAsync(chatId, question);
     }
-  } 
-  // Якщо вибір рівня англійської
-  else if (session.step === 4) {
+  } else if (session.step === 4) {
     const validLevels = ["Новачок", "Середній", "Просунутий"];
     if (validLevels.includes(data)) {
       session.answers.push({ level: data });
       session.step++;
 
-      // Запитуємо день проведення уроку
       const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
       const keyboard = createKeyboard(days);
       await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
     }
-  } 
-  // Якщо вибір дня
-  else if (session.step === 5) {
+  } else if (session.step === 5) {
     const validDays = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
     if (validDays.includes(data)) {
       session.answers.push({ day: data });
+      session.step++;
 
-      // Запитуємо номер телефону
       await sendContactRequest(chatId);
-
-      // Надсилаємо підтвердження
-      await sendMessageAsync(chatId, "Дякую, ваші дані записано.");
     }
   }
 });
 
+// Обробка контактних даних
+bot.on("contact", async (msg) => {
+  const chatId = msg.chat.id;
+  const session = sessions[chatId];
+
+  if (session && session.step === 6) {
+    const contact = msg.contact.phone_number;
+    session.answers.push({ phone: contact });
+
+    // Відправка інформації вчителю
+    const messageToTeacher = `
+Запис на урок:
+- Ім'я: ${session.answers[0].name}
+- Telegram: ${session.answers[1].telegramTag}
+- Кого записують: ${session.answers[2].choice}
+- Вік: ${session.answers[3].age}
+- Рівень англійської: ${session.answers[4].level}
+- День: ${session.answers[5].day}
+- Номер телефону: ${contact}
+    `;
+
+    await sendMessageAsync(TEACHER_CHAT_ID, messageToTeacher);
+
+    // Відповідь користувачу
+    await sendMessageAsync(chatId, "Дякую! Ваша заявка прийнята. Ми зв'яжемося з вами найближчим часом.");
+
+    // Завершення сесії
+    delete sessions[chatId];
+  }
+});
 
 
 export default bot;
