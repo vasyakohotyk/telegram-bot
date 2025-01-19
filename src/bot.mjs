@@ -149,7 +149,7 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     }
-    // Якщо це етап вибору рівня англійської
+    // Якщо це етап вибору рівня англійсько
     else if (session.step === 3) {
       const validLevels = ["beginner", "intermediate", "advanced"];
       if (validLevels.includes(answer)) {
