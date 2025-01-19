@@ -40,9 +40,8 @@ bot.on("text", async (msg) => {
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
 
-      // Надсилаємо перше привітальне повідомленн
-      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок. \n\nПробне заняття: \n- Повністю безкоштовне \n- Триває 30 хвилин \n- Можливість обрати зручний для вас день.");
-
+      // Надсилаємо перше привітальне повідомлення
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок.");
       await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
@@ -100,7 +99,7 @@ bot.on("text", async (msg) => {
     // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
-      const validLevels = ["Початковий", "Середній", "Продвинутий"];
+      const validLevels = ["beginner", "intermediate", "advanced"];
 
       if (validLevels.includes(level)) {
         session.answers.push(level);
