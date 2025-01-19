@@ -90,7 +90,7 @@ bot.on("text", async (msg) => {
         session.step++;
 
         // Запитуємо рівень англійської
-        const keyboard = createKeyboard(["Початковий", "Середній", "Продвинутий"]);
+        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
@@ -164,7 +164,7 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["Початковий", "Середній", "Продвинутий"];
+      const validLevels = ["beginnerі", "intermediate", "advanced"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
