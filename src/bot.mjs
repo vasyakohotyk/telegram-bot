@@ -104,7 +104,7 @@ bot.on("text", async (msg) => {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
       }
     }
-    // Якщо вибір рівня англійської зроблений
+    // Якщо вибір рівня англійської зроблени
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
       const validLevels = ["початковий", "середній", "продвинутий"];
