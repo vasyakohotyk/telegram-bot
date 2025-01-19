@@ -128,24 +128,6 @@ bot.on("text", async (msg) => {
         await sendMessageAsync(chatId, "Будь ласка, виберіть день з кнопок.");
       }
     }
-    // Якщо запитуємо тег Telegram
-    else if (session.step === 5) {
-      // Запитуємо тег Telegram
-      session.answers.push(msg.text);
-      session.step++;
-
-      // Завершаємо процес і відправляємо відповідь вчителю
-      await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемось з вами найближчим часом.");
-
-      // Повідомляємо вчителя
-      await sendMessageAsync(
-        TEACHER_CHAT_ID,
-        `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}\n7. Telegram тег: @${session.answers[6]}`
-      );
-
-      // Завершуємо сесію для користувача
-      delete sessions[chatId];
-    }
   }
 });
 
@@ -158,13 +140,78 @@ bot.on("contact", async (msg) => {
     // Зберігаємо номер телефону
     session.answers.push(msg.contact.phone_number);
 
-    // Викликаємо функцію для запиту Telegram тега
-    await sendMessageAsync(chatId, "Введіть ваш Telegram тег (наприклад, @username):");
+    // Повідомляємо вчителя
+    await sendMessageAsync(
+      TEACHER_CHAT_ID,
+      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}`    );
+
+    // Завершуємо сесію
+    delete sessions[chatId];
+    await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемось з вами найближчим часом.");
   } else {
     await sendMessageAsync(chatId, "Щось пішло не так. Натисніть /start, щоб почати знову.");
   }
 });
 
+// Обробник callback-запитів для кнопок
+bot.on("callbackQuery", async (query) => {
+  const chatId = query.from.id;
+  const session = sessions[chatId];
 
+  if (!session) {
+    await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
+    return;
+  }
+
+  const answer = query.data.toLowerCase();
+
+  try {
+    if (session.step === 1) {
+      if (answer === "себе" || answer === "дитину") {
+        session.answers.push(answer);
+        session.step++;
+
+        if (answer === "себе") {
+          await sendMessageAsync(chatId, "Скільки вам років?");
+        } else {
+          await sendMessageAsync(chatId, "Скільки років дитині?");
+        }
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
+      }
+    } else if (session.step === 3) {
+      const validLevels = ["новачок", "середній", "просунутий"];
+      if (validLevels.includes(answer)) {
+        session.answers.push(answer);
+        session.step++;
+
+        // Запитуємо день проведення уроку
+        const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
+        const keyboard = createKeyboard(days);
+        await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+      }
+    } else if (session.step === 4) {
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
+      if (validDays.includes(answer)) {
+        session.answers.push(answer);
+        session.step++;
+
+        // Запитуємо номер телефону
+        await sendContactRequest(chatId);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, оберіть день за допомогою кнопок.");
+      }
+    } else {
+      await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
+    }
+
+    await bot.answerCallbackQuery(query.id);
+  } catch (error) {
+    console.error("Помилка обробки callbackQuery:", error);
+    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
+  }
+});
 
 export default bot;
