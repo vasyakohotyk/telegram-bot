@@ -165,7 +165,7 @@ bot.on("callbackQuery", async (query) => {
       await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
 
-    // Відповідаємо на callback-запит, щоб уникнути помилок
+    // Відповідаємо на callback-запит, щоб уникнути помило
     await bot.answerCallbackQuery(query.id);
   } catch (error) {
     console.error("Помилка обробки callbackQuery:", error);
