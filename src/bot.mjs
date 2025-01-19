@@ -1,5 +1,5 @@
 import TeleBot from "telebot";
-import Icon from '../public/logo.png'
+
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
@@ -39,7 +39,7 @@ bot.on("text", async (msg) => {
     // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
       sessions[chatId] = { answers: [], step: 0 };
-      const photoUrl = "./public/logo.png";
+      const photoUrl = "https://telegram-bot-xvks.vercel.app/images/logo.png";
       const text = "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.";
       await bot.sendPhoto(chatId, photoUrl, { caption: text });
     }
