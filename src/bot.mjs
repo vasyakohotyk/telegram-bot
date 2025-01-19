@@ -3,7 +3,9 @@ import TeleBot from "telebot";
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
-const TEACHER_CHAT_ID = [806072377,7114975475];
+const TEACHER_CHAT_ID = 806072377;
+const TEACHER_CHAT_ID1 = 7114975475;
+
 
 const sessions = {};
 
@@ -54,7 +56,7 @@ bot.on("text", async (msg) => {
     if (session.step === 0) {
       session.answers.push({ name: msg.text });
       session.step++;
-      await sendMessageAsync(chatId, "Вкажіть ваш Telegram-тег (наприклад, @username).");
+      await sendMessageAsync(chatId, "Вкажіть ваш Telegram-тег (наприклад, @username). У разі відсутності (приклад - @-)");
     } else if (session.step === 1) {
       const telegramTag = msg.text.trim();
 
@@ -143,9 +145,8 @@ bot.on("contact", async (msg) => {
 - Номер телефону: ${contact}
     `;
 
-    for (const teacherChatId of TEACHER_CHAT_IDS) {
-      await sendMessageAsync(teacherChatId, messageToTeacher);
-    }
+    await sendMessageAsync(TEACHER_CHAT_ID, messageToTeacher);
+    await sendMessageAsync(TEACHER_CHAT_ID1, messageToTeacher);
 
     // Відповідь користувачу
     await sendMessageAsync(chatId, "Дякую! Ваша заявка прийнята. Ми зв'яжемося з вами найближчим часом.");
