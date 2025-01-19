@@ -3,7 +3,7 @@ import TeleBot from "telebot";
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
-const TEACHER_CHAT_ID = 7114975475;
+const TEACHER_CHAT_ID = 806072377;
 
 const sessions = {};
 
@@ -41,7 +41,7 @@ bot.on("text", async (msg) => {
       sessions[chatId] = { answers: [], step: 0 };
 
       // Надсилаємо перше привітальне повідомлення
-      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок.");
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.");
       await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
