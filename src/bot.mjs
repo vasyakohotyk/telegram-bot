@@ -100,7 +100,7 @@ bot.on("text", async (msg) => {
     // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
-      const validLevels = ["beginner", "intermediate", "advanced"];
+      const validLevels = ["Початковий", "Середній", "Продвинутий"];
 
       if (validLevels.includes(level)) {
         session.answers.push(level);
