@@ -143,8 +143,7 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}`
-    );
+      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}`    );
 
     // Завершуємо сесію
     delete sessions[chatId];
@@ -191,11 +190,27 @@ bot.on("callbackQuery", async (query) => {
         const keyboard = createKeyboard(days);
         await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
       }
+    } else if (session.step === 4) {
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
+      if (validDays.includes(answer)) {
+        session.answers.push(answer);
+        session.step++;
+
+        // Запитуємо номер телефону
+        await sendContactRequest(chatId);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, оберіть день за допомогою кнопок.");
+      }
+    } else {
+      await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
+
+    await bot.answerCallbackQuery(query.id);
   } catch (error) {
-    console.error("Error handling callback:", error);
+    console.error("Помилка обробки callbackQuery:", error);
+    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
   }
 });
 
