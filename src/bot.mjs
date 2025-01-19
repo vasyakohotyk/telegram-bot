@@ -74,8 +74,22 @@ bot.on("text", async (msg) => {
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний Telegram-тег, який починається з @.");
       }
+    } 
+    // Якщо отримано вік
+    else if (session.step === 3) {
+      const age = parseInt(msg.text.trim(), 10);
+
+      if (!isNaN(age) && age > 0) {
+        session.answers.push({ age });
+        session.step++;
+
+        // Запитуємо рівень англійської
+        const keyboard = createKeyboard(["Новачок", "Середній", "Просунутий"]);
+        await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
+      }
     }
-    // Інші етапи обробляються через callbackQuery
   }
 });
 
@@ -130,5 +144,7 @@ bot.on("callbackQuery", async (msg) => {
     }
   }
 });
+
+
 
 export default bot;
