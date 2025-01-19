@@ -41,7 +41,8 @@ bot.on("text", async (msg) => {
       sessions[chatId] = { answers: [], step: 0 };
 
       // Надсилаємо перше привітальне повідомлення
-      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок.");
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок. \n\nПробне заняття: \n- Повністю безкоштовне \n- Триває 30 хвилин \n- Можливість обрати зручний для вас день.");
+
       await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
@@ -90,7 +91,7 @@ bot.on("text", async (msg) => {
         session.step++;
 
         // Запитуємо рівень англійської
-        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
+        const keyboard = createKeyboard(["Початковий", "Середній", "Продвинутий"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
@@ -105,10 +106,8 @@ bot.on("text", async (msg) => {
         session.answers.push(level);
         session.step++;
 
-        // Запитуємо дні для пробного заняття
-        const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
-        const keyboard = createKeyboard(daysOfWeek);
-        await sendMessageAsync(chatId, "Виберіть дні, коли вам буде зручно провести пробне заняття. Можна обрати кілька.", keyboard);
+        // Викликаємо функцію для запиту номера телефону
+        await sendContactRequest(chatId);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
@@ -128,7 +127,7 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}\nДні для заняття: ${session.answers[5]}`
+      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`
     );
 
     // Завершуємо сесію
@@ -149,7 +148,7 @@ bot.on("callbackQuery", async (query) => {
     return;
   }
 
-  const answer = query.data;
+  const answer = query.data.toLowerCase();
 
   try {
     if (session.step === 1) {
@@ -166,29 +165,25 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["beginner", "intermediate", "advanced"];
+      const validLevels = ["Початковий", "Середній", "Продвинутий"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
 
-        // Запитуємо дні для пробного заняття
-        const daysOfWeek = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
-        const keyboard = createKeyboard(daysOfWeek);
-        await sendMessageAsync(chatId, "Виберіть дні, коли вам буде зручно провести пробне заняття. Можна обрати кілька.", keyboard);
+        // Запитуємо номер телефону
+        await sendContactRequest(chatId);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
       }
-    } else if (session.step === 4) {
-      if (!session.answers.includes(answer)) {
-        session.answers.push(answer);
-        await sendMessageAsync(chatId, `День ${answer} додано!`);
-      } else {
-        await sendMessageAsync(chatId, "Цей день уже додано.");
-      }
+    } else {
+      await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
+
+    await bot.answerCallbackQuery(query.id);
   } catch (error) {
-    console.error("Error handling callback query:", error);
+    console.error("Помилка обробки callbackQuery:", error);
+    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
   }
 });
 
-bot.start();
+export default bot;
