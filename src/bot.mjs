@@ -19,6 +19,13 @@ const createKeyboard = (options) => {
   };
 };
 
+// Функція для створення клавіатури з кнопкою "Готово"
+const createDoneKeyboard = () => {
+  return {
+    inline_keyboard: [[{ text: "Готово", callback_data: "done" }]]
+  };
+};
+
 // Функція для запиту номера телефону
 const sendContactRequest = async (chatId) => {
   const keyboard = {
@@ -38,7 +45,7 @@ bot.on("text", async (msg) => {
   if (msg.text === "/start") {
     // Ініціалізація сесії для користувача
     if (!sessions[chatId]) {
-      sessions[chatId] = { answers: [], step: 0 };
+      sessions[chatId] = { answers: [], step: 0, selectedDays: [] };
 
       // Надсилаємо перше привітальне повідомлення
       await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.");
@@ -119,14 +126,55 @@ bot.on("text", async (msg) => {
 
       const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
       if (validDays.includes(day.toLowerCase())) {
-        session.answers.push(day);
+        session.selectedDays.push(day);
         session.step++;
 
-        // Викликаємо функцію для запиту номера телефону
-        await sendContactRequest(chatId);
+        // Додаємо кнопку "Готово"
+        await sendMessageAsync(chatId, "Додано день! Якщо хочете додати ще, вибирайте день, або натискайте 'Готово'.", createDoneKeyboard());
       } else {
         await sendMessageAsync(chatId, "Будь ласка, виберіть день з кнопок.");
       }
+    }
+  }
+});
+
+// Обробляємо callback-запити для кнопок
+bot.on("callbackQuery", async (query) => {
+  const chatId = query.from.id;
+  const session = sessions[chatId];
+
+  if (!session) {
+    await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
+    return;
+  }
+
+  const answer = query.data.toLowerCase();
+
+  if (session.step === 1) {
+    if (answer === "себе" || answer === "дитину") {
+      session.answers.push(answer);
+      session.step++;
+
+      if (answer === "себе") {
+        await sendMessageAsync(chatId, "Скільки вам років?");
+      } else {
+        await sendMessageAsync(chatId, "Скільки років дитині?");
+      }
+    } else {
+      await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
+    }
+  } else if (session.step === 4) {
+    if (answer === "done") {
+      // Якщо вибір "Готово", завершуємо вибір днів
+      await sendMessageAsync(chatId, "Вибір днів завершено!");
+      session.step++;
+
+      // Запитуємо номер телефону
+      await sendContactRequest(chatId);
+    } else {
+      // Додаємо обраний день
+      session.selectedDays.push(answer);
+      await sendMessageAsync(chatId, `Додано: ${answer}. Якщо хочете додати ще, вибирайте день, або натискайте 'Готово'.`, createDoneKeyboard());
     }
   }
 });
@@ -143,7 +191,7 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nДень уроку: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`
+      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nДні уроків: ${session.selectedDays.join(", ")}\nНомер телефону: ${session.answers[5]}`
     );
 
     // Завершуємо сесію
@@ -154,49 +202,5 @@ bot.on("contact", async (msg) => {
   }
 });
 
-// Обробник callback-запитів для кнопок
-bot.on("callbackQuery", async (query) => {
-  const chatId = query.from.id;
-  const session = sessions[chatId];
-
-  if (!session) {
-    await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
-    return;
-  }
-
-  const answer = query.data.toLowerCase();
-
-  try {
-    if (session.step === 1) {
-      if (answer === "себе" || answer === "дитину") {
-        session.answers.push(answer);
-        session.step++;
-
-        if (answer === "себе") {
-          await sendMessageAsync(chatId, "Скільки вам років?");
-        } else {
-          await sendMessageAsync(chatId, "Скільки років дитині?");
-        }
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
-      }
-    } else if (session.step === 3) {
-      const validLevels = ["новачок", "середній", "просунутий"];
-      if (validLevels.includes(answer)) {
-        session.answers.push(answer);
-        session.step++;
-
-        // Запитуємо день проведення уроку
-        const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
-        const keyboard = createKeyboard(days);
-        await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
-      }
-    }
-  } catch (error) {
-    console.error("Error handling callback:", error);
-  }
-});
 
 export default bot;
