@@ -3,7 +3,7 @@ import TeleBot from "telebot";
 const bot = new TeleBot(process.env.TELEGRAM_BOT_TOKEN);
 
 // ID вчителя
-const TEACHER_CHAT_ID = 806072377;
+const TEACHER_CHAT_ID = [806072377,7114975475];
 
 const sessions = {};
 
@@ -143,7 +143,9 @@ bot.on("contact", async (msg) => {
 - Номер телефону: ${contact}
     `;
 
-    await sendMessageAsync(TEACHER_CHAT_ID, messageToTeacher);
+    for (const teacherChatId of TEACHER_CHAT_IDS) {
+      await sendMessageAsync(teacherChatId, messageToTeacher);
+    }
 
     // Відповідь користувачу
     await sendMessageAsync(chatId, "Дякую! Ваша заявка прийнята. Ми зв'яжемося з вами найближчим часом.");
