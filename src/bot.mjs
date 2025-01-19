@@ -30,6 +30,12 @@ const sendContactRequest = async (chatId) => {
   await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону, натиснувши кнопку нижче.", keyboard);
 };
 
+// Функція для запиту тегу
+const sendTagRequest = async (chatId) => {
+  const keyboard = createKeyboard(["Тег 1", "Тег 2", "Тег 3"]);
+  await sendMessageAsync(chatId, "Будь ласка, виберіть тег:", keyboard);
+};
+
 // Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
@@ -55,7 +61,6 @@ bot.on("text", async (msg) => {
 
     // Якщо відповідь на ім'я вже отримано
     if (session.step === 0) {
-      // Зберігаємо ім'я користувача
       session.answers.push(msg.text);
       session.step++;
 
@@ -122,8 +127,8 @@ bot.on("text", async (msg) => {
         session.answers.push(day);
         session.step++;
 
-        // Викликаємо функцію для запиту номера телефону
-        await sendContactRequest(chatId);
+        // Викликаємо функцію для запиту тегу
+        await sendTagRequest(chatId);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, виберіть день з кнопок.");
       }
@@ -136,7 +141,6 @@ bot.on("text", async (msg) => {
       await sendContactRequest(chatId);
     }
   }
-  
 });
 
 // Обробляємо контактні дані
@@ -151,7 +155,8 @@ bot.on("contact", async (msg) => {
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Тег: ${session.answers[5]} 7. Номер телефону: ${session.answers[6]}`    );
+      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Тег: ${session.answers[5]}\n7. Номер телефону: ${session.answers[6]}`
+    );
 
     // Завершуємо сесію
     delete sessions[chatId];
@@ -185,41 +190,13 @@ bot.on("callbackQuery", async (query) => {
           await sendMessageAsync(chatId, "Скільки років дитині?");
         }
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
       }
-    } else if (session.step === 3) {
-      const validLevels = ["новачок", "середній", "просунутий"];
-      if (validLevels.includes(answer)) {
-        session.answers.push(answer);
-        session.step++;
-
-        // Запитуємо день проведення уроку
-        const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
-        const keyboard = createKeyboard(days);
-        await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
-      }
-    } else if (session.step === 4) {
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
-      if (validDays.includes(answer)) {
-        session.answers.push(answer);
-        session.step++;
-
-        // Запитуємо номер телефону
-        await sendContactRequest(chatId);
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть день за допомогою кнопок.");
-      }
-    } else {
-      await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
-
-    await bot.answerCallbackQuery(query.id);
-  } catch (error) {
-    console.error("Помилка обробки callbackQuery:", error);
-    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
+  } catch (err) {
+    console.log(err);
   }
 });
+
 
 export default bot;
