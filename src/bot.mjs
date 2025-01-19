@@ -19,6 +19,17 @@ const createKeyboard = (options) => {
   };
 };
 
+// Функція для запиту номера телефону
+const sendContactRequest = async (chatId) => {
+  const keyboard = {
+    keyboard: [[{ text: "Надати номер телефону", request_contact: true }]],
+    resize_keyboard: true,
+    one_time_keyboard: true,
+  };
+
+  await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону, натиснувши кнопку нижче.", keyboard);
+};
+
 // Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
@@ -30,9 +41,7 @@ bot.on("text", async (msg) => {
       sessions[chatId] = { answers: [], step: 0 };
 
       // Надсилаємо перше привітальне повідомлення
-      await sendMessageAsync(chatId, "Привіт, я Даша твій сучасний тютор з англійської! Давайте запишемось на пробний урок. Пробний урок триває 30 хвилин, та являється повністю безкоштовним!");
-
-      // Запитуємо ім'я
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок.");
       await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
@@ -56,14 +65,13 @@ bot.on("text", async (msg) => {
     }
     // Якщо відповідь на "Себе чи дитину?" отримано
     else if (session.step === 1) {
-      // Зберігаємо вибір користувача
       const choice = msg.text.toLowerCase();
-      if (choice === 'себе' || choice === 'дитину') {
+      if (choice === "себе" || choice === "дитину") {
         session.answers.push(choice);
         session.step++;
 
         // Запитуємо вік залежно від вибору
-        if (choice === 'себе') {
+        if (choice === "себе") {
           await sendMessageAsync(chatId, "Скільки вам років?");
         } else {
           await sendMessageAsync(chatId, "Скільки років дитині?");
@@ -97,49 +105,56 @@ bot.on("text", async (msg) => {
         session.answers.push(level);
         session.step++;
 
-        // Запитуємо номер телефону
-        await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
+        // Викликаємо функцію для запиту номера телефону
+        await sendContactRequest(chatId);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
     }
-    // Якщо номер телефону введено
-    else if (session.step === 4) {
-      // Зберігаємо номер телефону
-      session.answers.push(msg.text);
-
-      // Завершуємо сесію після збору всіх відповідей і відправляємо вчителю
-      await sendMessageAsync(TEACHER_CHAT_ID, `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`);
-
-      // Завершуємо сесію
-      delete sessions[chatId];
-    }
   }
 });
 
-// Обробник callback-запитів для кнопок
+// Обробляємо контактні дані
+bot.on("contact", async (msg) => {
+  const chatId = msg.chat.id;
+  const session = sessions[chatId];
+
+  if (session && session.step === 4) {
+    // Зберігаємо номер телефону
+    session.answers.push(msg.contact.phone_number);
+
+    // Повідомляємо вчителя
+    await sendMessageAsync(
+      TEACHER_CHAT_ID,
+      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`
+    );
+
+    // Завершуємо сесію
+    delete sessions[chatId];
+    await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемось з вами найближчим часом.");
+  } else {
+    await sendMessageAsync(chatId, "Щось пішло не так. Натисніть /start, щоб почати знову.");
+  }
+});
+
 // Обробник callback-запитів для кнопок
 bot.on("callbackQuery", async (query) => {
   const chatId = query.from.id;
   const session = sessions[chatId];
 
-  // Якщо сесії немає, запитуємо користувача натискати /start
   if (!session) {
     await sendMessageAsync(chatId, "Натисніть /start, щоб почати.");
     return;
   }
 
-  // Отримуємо дані з кнопки
   const answer = query.data.toLowerCase();
 
   try {
-    // Якщо це етап вибору "Себе" або "Дитину"
     if (session.step === 1) {
       if (answer === "себе" || answer === "дитину") {
         session.answers.push(answer);
         session.step++;
 
-        // Запитуємо вік залежно від вибору
         if (answer === "себе") {
           await sendMessageAsync(chatId, "Скільки вам років?");
         } else {
@@ -148,16 +163,14 @@ bot.on("callbackQuery", async (query) => {
       } else {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
-    }
-    // Якщо це етап вибору рівня англійсько
-    else if (session.step === 3) {
+    } else if (session.step === 3) {
       const validLevels = ["beginner", "intermediate", "advanced"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
 
         // Запитуємо номер телефону
-        await sendMessageAsync(chatId, "Будь ласка, надайте ваш номер телефону.");
+        await sendContactRequest(chatId);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
       }
@@ -165,13 +178,11 @@ bot.on("callbackQuery", async (query) => {
       await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
 
-    // Відповідаємо на callback-запит, щоб уникнути помило
     await bot.answerCallbackQuery(query.id);
   } catch (error) {
     console.error("Помилка обробки callbackQuery:", error);
     await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
   }
 });
-
 
 export default bot;
