@@ -90,7 +90,7 @@ bot.on("text", async (msg) => {
         session.step++;
 
         // Запитуємо рівень англійської
-        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
+        const keyboard = createKeyboard(["Новачок", "Середній", "Просунутий"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
@@ -99,16 +99,33 @@ bot.on("text", async (msg) => {
     // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
-      const validLevels = ["beginner", "intermediate", "advanced"];
+      const validLevels = ["новачок", "середній", "просунутий"];
 
       if (validLevels.includes(level)) {
         session.answers.push(level);
         session.step++;
 
+        // Запитуємо день проведення уроку
+        const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
+        const keyboard = createKeyboard(days);
+        await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
+      }
+    }
+    // Якщо вибір дня проведення уроку зроблений
+    else if (session.step === 4) {
+      const day = msg.text.trim();
+
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
+      if (validDays.includes(day.toLowerCase())) {
+        session.answers.push(day);
+        session.step++;
+
         // Викликаємо функцію для запиту номера телефону
         await sendContactRequest(chatId);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть день з кнопок.");
       }
     }
   }
@@ -119,14 +136,14 @@ bot.on("contact", async (msg) => {
   const chatId = msg.chat.id;
   const session = sessions[chatId];
 
-  if (session && session.step === 4) {
+  if (session && session.step === 5) {
     // Зберігаємо номер телефону
     session.answers.push(msg.contact.phone_number);
 
     // Повідомляємо вчителя
     await sendMessageAsync(
       TEACHER_CHAT_ID,
-      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nНомер телефону: ${session.answers[4]}`
+      `Новий запис:\nІм'я: ${session.answers[0]}\nЗаписує: ${session.answers[1]}\nВік: ${session.answers[2]}\nРівень англійської: ${session.answers[3]}\nДень уроку: ${session.answers[4]}\nНомер телефону: ${session.answers[5]}`
     );
 
     // Завершуємо сесію
@@ -164,15 +181,28 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["beginner", "intermediate", "advanced"];
+      const validLevels = ["новачок", "середній", "просунутий"];
       if (validLevels.includes(answer)) {
+        session.answers.push(answer);
+        session.step++;
+
+        // Запитуємо день проведення уроку
+        const days = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"];
+        const keyboard = createKeyboard(days);
+        await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
+      } else {
+        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+      }
+    } else if (session.step === 4) {
+      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
+      if (validDays.includes(answer)) {
         session.answers.push(answer);
         session.step++;
 
         // Запитуємо номер телефону
         await sendContactRequest(chatId);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, оберіть день за допомогою кнопок.");
       }
     } else {
       await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
