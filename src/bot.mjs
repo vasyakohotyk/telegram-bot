@@ -19,7 +19,7 @@ const createKeyboard = (options) => {
   };
 };
 
-// Відправка привітального повідомленн
+// Відправка привітального повідомлення
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
 
