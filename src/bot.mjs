@@ -128,6 +128,24 @@ bot.on("text", async (msg) => {
         await sendMessageAsync(chatId, "Будь ласка, виберіть день з кнопок.");
       }
     }
+    // Якщо запитуємо тег Telegram
+    else if (session.step === 5) {
+      // Запитуємо тег Telegram
+      session.answers.push(msg.text);
+      session.step++;
+
+      // Завершаємо процес і відправляємо відповідь вчителю
+      await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемось з вами найближчим часом.");
+
+      // Повідомляємо вчителя
+      await sendMessageAsync(
+        TEACHER_CHAT_ID,
+        `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}\n7. Telegram тег: @${session.answers[6]}`
+      );
+
+      // Завершуємо сесію для користувача
+      delete sessions[chatId];
+    }
   }
 });
 
@@ -140,21 +158,13 @@ bot.on("contact", async (msg) => {
     // Зберігаємо номер телефону
     session.answers.push(msg.contact.phone_number);
 
-    // Завершуємо сесію та повідомляємо
-    await sendMessageAsync(chatId, "Дякуємо! Ми зв'яжемось з вами найближчим часом.");
-
-    // Повідомляємо вчителя
-    await sendMessageAsync(
-      TEACHER_CHAT_ID,
-      `Новий запис:\n1. Ім'я: ${session.answers[0]}\n2. Записує: ${session.answers[1]}\n3. Вік: ${session.answers[2]}\n4. Рівень англійської: ${session.answers[3]}\n5. День уроку: ${session.answers[4]}\n6. Номер телефону: ${session.answers[5]}`
-    );
-
-    // Завершуємо сесію для користувача
-    delete sessions[chatId];
+    // Викликаємо функцію для запиту Telegram тега
+    await sendMessageAsync(chatId, "Введіть ваш Telegram тег (наприклад, @username):");
   } else {
     await sendMessageAsync(chatId, "Щось пішло не так. Натисніть /start, щоб почати знову.");
   }
 });
+
 
 
 export default bot;
