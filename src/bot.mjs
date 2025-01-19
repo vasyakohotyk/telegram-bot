@@ -72,7 +72,7 @@ bot.on("text", async (msg) => {
         await sendMessageAsync(chatId, "Будь ласка, напишіть 'Себе' або 'Дитину'.");
       }
     }
-    // Якщо вік введено
+
     else if (session.step === 2) {
       const age = parseInt(msg.text.trim(), 10);
 
