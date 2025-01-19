@@ -41,7 +41,8 @@ bot.on("text", async (msg) => {
       sessions[chatId] = { answers: [], step: 0 };
 
       // Надсилаємо перше привітальне повідомлення
-      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської! Давайте запишемось на пробний урок.");
+      await sendMessageAsync(chatId, "Привіт, я Даша, ваш сучасний тютор з англійської!\nІнформація про пробний урок: \n- Повністю безкоштовне \n- Триває 30 хвилин.\n\nДавайте запишемось на пробний урок.");
+
       await sendMessageAsync(chatId, "Як вас звати?");
     }
   } else {
@@ -90,7 +91,7 @@ bot.on("text", async (msg) => {
         session.step++;
 
         // Запитуємо рівень англійської
-        const keyboard = createKeyboard(["Beginner", "Intermediate", "Advanced"]);
+        const keyboard = createKeyboard(["Початковий", "Середній", "Продвинутий"]);
         await sendMessageAsync(chatId, "Який у вас рівень англійської?", keyboard);
       } else {
         await sendMessageAsync(chatId, "Будь ласка, введіть коректний вік.");
@@ -99,7 +100,7 @@ bot.on("text", async (msg) => {
     // Якщо вибір рівня англійської зроблений
     else if (session.step === 3) {
       const level = msg.text.toLowerCase();
-      const validLevels = ["beginner", "intermediate", "advanced"];
+      const validLevels = ["Початковий", "Середній", "Продвинутий"];
 
       if (validLevels.includes(level)) {
         session.answers.push(level);
@@ -164,7 +165,7 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["beginnerі", "intermediate", "advanced"];
+      const validLevels = ["Початковийі", "Середній", "Продвинутий"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
