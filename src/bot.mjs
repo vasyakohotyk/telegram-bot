@@ -166,7 +166,7 @@ bot.on("callbackQuery", async (query) => {
         await sendMessageAsync(chatId, "Будь ласка, оберіть 'Себе' або 'Дитину' за допомогою кнопок.");
       }
     } else if (session.step === 3) {
-      const validLevels = ["Початковий", "Середній", "Продвинутий"];
+      const validLevels = ["beginner", "intermediate", "advanced"];
       if (validLevels.includes(answer)) {
         session.answers.push(answer);
         session.step++;
@@ -176,21 +176,19 @@ bot.on("callbackQuery", async (query) => {
         const keyboard = createKeyboard(daysOfWeek);
         await sendMessageAsync(chatId, "Виберіть дні, коли вам буде зручно провести пробне заняття. Можна обрати кілька.", keyboard);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
     } else if (session.step === 4) {
-      // Якщо вибрано день для заняття
-      if (session.answers[5]) {
-        session.answers[5].push(answer);  // Додаємо вибраний день до масиву днів
-
-        await sendMessageAsync(chatId, "Чи є ще якісь дні для занять?");
+      if (!session.answers.includes(answer)) {
+        session.answers.push(answer);
+        await sendMessageAsync(chatId, `День ${answer} додано!`);
+      } else {
+        await sendMessageAsync(chatId, "Цей день уже додано.");
       }
     }
-    await bot.answerCallbackQuery(query.id);
   } catch (error) {
-    console.error("Помилка обробки callbackQuery:", error);
-    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
+    console.error("Error handling callback query:", error);
   }
 });
 
-export default bot;
+bot.start();
