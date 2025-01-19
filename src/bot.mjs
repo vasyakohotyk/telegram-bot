@@ -191,27 +191,11 @@ bot.on("callbackQuery", async (query) => {
         const keyboard = createKeyboard(days);
         await sendMessageAsync(chatId, "Оберіть день проведення уроку:", keyboard);
       } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть правильний рівень за допомогою кнопок.");
+        await sendMessageAsync(chatId, "Будь ласка, виберіть правильний рівень з кнопок.");
       }
-    } else if (session.step === 4) {
-      const validDays = ["понеділок", "вівторок", "середа", "четвер", "п’ятниця", "субота", "неділя"];
-      if (validDays.includes(answer)) {
-        session.answers.push(answer);
-        session.step++;
-
-        // Запитуємо номер телефону
-        await sendContactRequest(chatId);
-      } else {
-        await sendMessageAsync(chatId, "Будь ласка, оберіть день за допомогою кнопок.");
-      }
-    } else {
-      await sendMessageAsync(chatId, "Невідома дія. Спробуйте ще раз.");
     }
-
-    await bot.answerCallbackQuery(query.id);
   } catch (error) {
-    console.error("Помилка обробки callbackQuery:", error);
-    await sendMessageAsync(chatId, "Сталася помилка. Спробуйте ще раз.");
+    console.error("Error handling callback:", error);
   }
 });
 
