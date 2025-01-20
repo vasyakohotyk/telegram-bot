@@ -60,7 +60,7 @@ bot.on("text", async (msg) => {
     } else if (session.step === 1) {
       const telegramTag = msg.text.trim();
 
-      if (telegramTag.startsWith("@") && telegramTag.length > 1) {
+      if (telegramTag.startsWith("@") && telegramTag.length > 1 || telegramTag === "-") {
         session.answers.push({ telegramTag });
         session.step++;
 
