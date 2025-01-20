@@ -56,7 +56,7 @@ bot.on("text", async (msg) => {
     if (session.step === 0) {
       session.answers.push({ name: msg.text });
       session.step++;
-      await sendMessageAsync(chatId, "Вкажіть ваш Telegram-тег (наприклад, @username). У разі відсутності (приклад - @-)");
+      await sendMessageAsync(chatId, "Вкажіть ваш Telegram-тег (наприклад, @username). У разі відсутності (поставте -)");
     } else if (session.step === 1) {
       const telegramTag = msg.text.trim();
 
